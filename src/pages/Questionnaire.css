@@ -1,0 +1,111 @@
+.questionnaire-loading,
+.questionnaire-error,
+.questionnaire-empty {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.questionnaire-error {
+  color: #e94560;
+}
+
+.questionnaire-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.questionnaire-progress .progress-bar {
+  height: 6px;
+  background: #e94560;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.questionnaire-progress span {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.questionnaire-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.pillar-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background: rgba(233, 69, 96, 0.2);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #e94560;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+.questionnaire-card h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1.2rem;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.option-btn {
+  text-align: left;
+  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.option-btn:hover {
+  border-color: rgba(233, 69, 96, 0.5);
+  background: rgba(233, 69, 96, 0.08);
+}
+
+.option-btn.selected {
+  border-color: #e94560;
+  background: rgba(233, 69, 96, 0.15);
+}
+
+.option-label {
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 0.5rem;
+  color: #e94560;
+}
+
+.option-text {
+  font-size: 0.95rem;
+}
+
+.questionnaire-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.questionnaire-actions .btn-outline {
+  background: transparent;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.questionnaire-actions .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+}

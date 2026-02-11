@@ -1,0 +1,74 @@
+.join-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #e8e4f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.join-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.join-card h1 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.join-card p {
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.join-card strong {
+  color: #e94560;
+  letter-spacing: 0.05em;
+}
+
+.join-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.join-actions .btn {
+  width: 100%;
+}
+
+.join-actions .btn-outline {
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.join-actions .btn-outline:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.join-back {
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+}
+
+.join-back a {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.join-back a:hover {
+  color: #fff;
+}

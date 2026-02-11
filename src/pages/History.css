@@ -1,0 +1,80 @@
+.history-loading,
+.history-error {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.history-error {
+  color: #e94560;
+}
+
+.history h1 {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.history-empty {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1rem;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.history-item-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.history-date {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.history-pct {
+  font-weight: 700;
+  color: #e94560;
+}
+
+.history-level {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.history-item .btn-outline {
+  background: transparent;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.history-back {
+  margin-top: 1.5rem;
+}
+
+.history-back a {
+  color: #e94560;
+  text-decoration: none;
+}
+
+.history-back a:hover {
+  text-decoration: underline;
+}
