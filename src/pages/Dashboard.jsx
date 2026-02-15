@@ -1,14 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/client';
+import ApiErrorBlock from '../components/ApiErrorBlock';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 import './Dashboard.css';
 
 function copyToClipboard(text, onDone) {
   navigator.clipboard?.writeText(text).then(() => onDone?.()).catch(() => onDone?.(false));
 }
 
+const POLL_INTERVAL_MS = 3000;
+
 export default function Dashboard() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [couple, setCouple] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +22,12 @@ export default function Dashboard() {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(null); // 'code' | 'link' | null
+  const pollRef = useRef(null);
+
+  useEffect(() => {
+    document.title = 'Tableau de bord — CoupleMatch';
+    return () => { document.title = 'CoupleMatch'; };
+  }, []);
 
   useEffect(() => {
     load();
@@ -98,6 +109,44 @@ export default function Dashboard() {
     }
   }
 
+  const handleViewResult = useCallback(async () => {
+    try {
+      const sessionRes = await api.get('/session/current');
+      const sess = sessionRes.data?.data?.session;
+      if (sess?.result) {
+        navigate(`/app/result/${sess.id}`, { replace: true });
+      } else {
+        setSession(sess || null);
+      }
+    } catch {
+      setSession(null);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!session?.ready_to_calculate || session?.result) {
+      if (pollRef.current) clearInterval(pollRef.current);
+      return;
+    }
+    pollRef.current = setInterval(async () => {
+      try {
+        const sessionRes = await api.get('/session/current');
+        const sess = sessionRes.data?.data?.session;
+        if (sess?.result) {
+          if (pollRef.current) clearInterval(pollRef.current);
+          navigate(`/app/result/${sess.id}`, { replace: true });
+        } else {
+          setSession(sess || null);
+        }
+      } catch {
+        // keep current state
+      }
+    }, POLL_INTERVAL_MS);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [session?.ready_to_calculate, session?.result, navigate]);
+
   async function joinCouple(e) {
     e.preventDefault();
     if (!joinCode.trim() || joinCode.trim().length !== 6) {
@@ -120,8 +169,27 @@ export default function Dashboard() {
     }
   }
 
-  if (loading) return <div className="dashboard-loading">Chargement…</div>;
-  if (error) return <div className="dashboard-error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <h1>Tableau de bord</h1>
+        <LoadingSkeleton variant="cards" />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="dashboard">
+        <h1>Tableau de bord</h1>
+        <ApiErrorBlock
+          message={error}
+          onRetry={load}
+          backTo="/app"
+          backLabel="Retour au tableau de bord"
+        />
+      </div>
+    );
+  }
 
   const hasPartner = couple?.partner;
   const canStart = hasPartner && !session;
@@ -203,13 +271,18 @@ export default function Dashboard() {
                 </>
               ) : (
                 <>
-                  <p>Vos réponses : {session.my_responses_count} / 40</p>
-                  <p>Partenaire : {session.partner_responses_count} / 40</p>
+                  <p>Vos réponses : {session.my_responses_count} / {session.expected_questions_count ?? 40}</p>
+                  <p>Partenaire : {session.partner_responses_count} / {session.expected_questions_count ?? 40}</p>
                   {session.ready_to_calculate ? (
-                    <p className="ready-msg">Les deux ont répondu. Rechargez la page pour voir le résultat.</p>
+                    <>
+                      <p className="ready-msg">Les deux ont répondu.</p>
+                      <button type="button" className="btn btn-primary" onClick={handleViewResult}>
+                        Voir le résultat
+                      </button>
+                    </>
                   ) : (
                     <Link to="/app/questionnaire" className="btn btn-primary">
-                      {session.my_responses_count >= 40 ? 'En attente du partenaire' : 'Continuer le questionnaire'}
+                      {(session.my_responses_count ?? 0) >= (session.expected_questions_count ?? 40) ? 'En attente du partenaire' : 'Continuer le questionnaire'}
                     </Link>
                   )}
                 </>

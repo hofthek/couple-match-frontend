@@ -1,0 +1,20 @@
+.api-error-block {
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--error-soft);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+}
+.api-error-message {
+  margin: 0 0 var(--space-4);
+  color: var(--error);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+.api-error-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}

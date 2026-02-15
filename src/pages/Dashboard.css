@@ -1,171 +1,163 @@
-.dashboard-loading,
-.dashboard-error {
-  text-align: center;
-  padding: 2rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.dashboard-error {
-  color: #e94560;
-}
-
 .dashboard h1 {
-  margin: 0 0 1.5rem;
-  font-size: 1.5rem;
-  color: #fff;
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .dashboard-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+  transition: border-color 0.2s;
 }
-
+.dashboard-card:hover {
+  border-color: var(--border-strong);
+}
 .dashboard-card h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.1rem;
-  color: #fff;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
 }
-
+.dashboard-card h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+}
 .dashboard-card p {
-  margin: 0 0 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.95rem;
+  margin: 0 0 var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
 }
-
 .dashboard-card code {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  font-size: 1rem;
+  background: var(--bg-input);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
 }
-
 .dashboard-card .btn {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
 }
 
 .ready-msg {
-  color: #86efac !important;
-  margin-top: 0.5rem !important;
+  color: var(--success) !important;
+  margin-top: var(--space-2) !important;
+  font-size: var(--text-sm) !important;
 }
 
 .dashboard-link {
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
 }
-
 .dashboard-link a {
-  color: #e94560;
-  text-decoration: none;
+  color: var(--accent);
   font-weight: 500;
+  font-size: var(--text-sm);
 }
-
 .dashboard-link a:hover {
-  text-decoration: underline;
+  color: var(--accent-hover);
 }
 
+/* Join form (inline in dashboard) */
 .join-form {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
 }
-
 .join-input {
   width: 8rem;
-  padding: 0.6rem 1rem;
-  font-size: 1.25rem;
-  letter-spacing: 0.2em;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-lg);
+  letter-spacing: 0.15em;
   text-align: center;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  color: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
 }
-
 .join-input:focus {
   outline: none;
-  border-color: #e94560;
+  border-color: var(--accent);
 }
-
 .dashboard-waiting {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .invitation-missing {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
-
 .invitation-block {
-  margin-top: 1rem;
-  padding: 1.25rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border: 1px solid rgba(233, 69, 96, 0.2);
+  margin-top: var(--space-4);
+  padding: var(--space-5);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
 }
-
 .invitation-block h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-  color: #fff;
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
 }
-
 .invitation-hint {
-  margin: 0 0 1rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.4;
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
 }
-
 .invitation-code-row,
 .invitation-link-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
-
 .invitation-code-row:last-child,
 .invitation-link-row:last-child {
   margin-bottom: 0;
 }
-
 .invitation-label {
   flex: 0 0 auto;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   min-width: 120px;
 }
-
 .invitation-code {
-  font-size: 1.5rem;
-  letter-spacing: 0.2em;
-  color: #e94560;
-  padding: 0.25rem 0.5rem;
-  background: rgba(233, 69, 96, 0.15);
-  border-radius: 8px;
+  font-size: var(--text-xl);
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  padding: var(--space-2) var(--space-3);
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
 }
-
 .invitation-link-url {
   flex: 1;
   min-width: 0;
-  font-size: 0.85rem;
-  padding: 0.4rem 0.6rem;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
+  font-size: var(--text-xs);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
   word-break: break-all;
+  color: var(--text-secondary);
 }
-
 .invitation-block .btn-outline {
   background: transparent;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
+}
+.invitation-block .btn-outline:hover {
+  color: var(--text-primary);
 }

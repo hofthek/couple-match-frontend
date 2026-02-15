@@ -10,6 +10,11 @@ export default function ResultDetails() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    document.title = 'Détail des réponses — CoupleMatch';
+    return () => { document.title = 'CoupleMatch'; };
+  }, [id]);
+
+  useEffect(() => {
     api.get(`/session/${id}/details`)
       .then((r) => {
         if (r.data?.success && Array.isArray(r.data.data)) setDetails(r.data.data);

@@ -37,7 +37,7 @@ export default function Landing() {
           <article className="feature-card">
             <span className="feature-icon">📝</span>
             <h3>Répondez au questionnaire</h3>
-            <p>40 questions sur 4 piliers : émotions, valeurs, vision et quotidien. Chacun répond de son côté.</p>
+            <p>Choisissez vos thèmes (compatibilité amoureuse, valeurs, vision, quotidien…), répondez aux questions, chacun de son côté.</p>
           </article>
           <article className="feature-card">
             <span className="feature-icon">📊</span>

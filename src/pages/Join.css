@@ -1,74 +1,63 @@
 .join-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
-  color: #e8e4f0;
+  background: var(--bg-page);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: var(--space-8);
 }
-
 .join-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
   text-align: center;
+  box-shadow: var(--shadow-sm);
 }
-
 .join-card h1 {
-  margin: 0 0 1rem;
-  font-size: 1.5rem;
-  color: #fff;
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
 }
-
 .join-card p {
-  margin: 0 0 1rem;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.5;
+  margin: 0 0 var(--space-4);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  font-size: var(--text-sm);
 }
-
 .join-card strong {
-  color: #e94560;
-  letter-spacing: 0.05em;
+  color: var(--accent);
+  letter-spacing: 0.02em;
 }
-
 .join-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
 }
-
 .join-actions .btn {
   width: 100%;
 }
-
 .join-actions .btn-outline {
   background: transparent;
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
 }
-
 .join-actions .btn-outline:hover {
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-elevated);
+  border-color: var(--text-muted);
 }
-
 .join-back {
-  margin-top: 1.5rem;
-  margin-bottom: 0;
+  margin-top: var(--space-6);
 }
-
 .join-back a {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  text-decoration: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
-
 .join-back a:hover {
-  color: #fff;
+  color: var(--text-primary);
 }

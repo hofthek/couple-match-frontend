@@ -1,0 +1,53 @@
+.loading-skeleton {
+  padding: var(--space-6);
+}
+.loading-skeleton .skeleton-line,
+.loading-skeleton .skeleton-block {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--border-default) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+.skeleton-title {
+  height: 1.25rem;
+  width: 55%;
+  margin-bottom: var(--space-4);
+}
+.skeleton-line {
+  height: 0.875rem;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+.skeleton-short {
+  width: 40%;
+}
+.skeleton-block {
+  height: 5rem;
+  margin-top: var(--space-4);
+}
+.loading-skeleton--cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.loading-skeleton--cards .skeleton-card {
+  height: 4.5rem;
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--border-default) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.4s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+@keyframes skeleton-shine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

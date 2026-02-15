@@ -17,6 +17,11 @@ export default function Result() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    document.title = 'Résultat — CoupleMatch';
+    return () => { document.title = 'CoupleMatch'; };
+  }, [id]);
+
+  useEffect(() => {
     api.get(`/session/${id}/result`)
       .then((r) => {
         if (r.data?.success) setResult(r.data.data);

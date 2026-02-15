@@ -1,23 +1,23 @@
 .history-loading,
 .history-error {
   text-align: center;
-  padding: 2rem;
-  color: rgba(255, 255, 255, 0.85);
+  padding: var(--space-8);
+  color: var(--text-secondary);
 }
-
 .history-error {
-  color: #e94560;
+  color: var(--error);
 }
 
 .history h1 {
-  margin: 0 0 1.5rem;
-  font-size: 1.5rem;
-  color: #fff;
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
 }
-
 .history-empty {
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 1rem;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
 }
 
 .history-list {
@@ -25,56 +25,66 @@
   padding: 0;
   margin: 0;
 }
-
 .history-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  margin-bottom: 0.75rem;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  transition: border-color 0.2s;
 }
-
+.history-item:hover {
+  border-color: var(--border-strong);
+}
 .history-item-main {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: var(--space-4);
 }
-
 .history-date {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
 }
-
 .history-pct {
-  font-weight: 700;
-  color: #e94560;
+  font-weight: 600;
+  color: var(--accent);
+  font-size: var(--text-sm);
 }
-
 .history-level {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
-
+.history-themes {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .history-item .btn-outline {
   background: transparent;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
 }
-
+.history-item .btn-outline:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
 .history-back {
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
 }
-
 .history-back a {
-  color: #e94560;
-  text-decoration: none;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 500;
 }
-
 .history-back a:hover {
-  text-decoration: underline;
+  color: var(--accent-hover);
 }
