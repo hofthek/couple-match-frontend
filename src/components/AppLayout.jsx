@@ -1,12 +1,14 @@
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
-import { Heart, LayoutDashboard, ListChecks, History, LogOut } from 'lucide-react';
+import { Heart, LayoutDashboard, ListChecks, History, LogOut, Sun, MessagesSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 import './AppLayout.css';
 
 const NAV = [
-  { to: '/app', label: 'Tableau de bord', icon: LayoutDashboard, end: true },
-  { to: '/app/questionnaire', label: 'Questionnaire', icon: ListChecks },
+  { to: '/app', label: 'Accueil', icon: LayoutDashboard, end: true },
+  { to: '/app/daily', label: 'Du jour', icon: Sun },
+  { to: '/app/questionnaire', label: 'Test', icon: ListChecks },
+  { to: '/app/coach', label: 'Coach', icon: MessagesSquare },
   { to: '/app/history', label: 'Historique', icon: History },
 ];
 

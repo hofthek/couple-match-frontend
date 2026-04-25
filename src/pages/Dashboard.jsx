@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Copy, Check, Heart, UserPlus, Sparkles, Hourglass, Play,
   ArrowRight, Share2, Link2, History as HistoryIcon, Loader2,
+  Sun, MessagesSquare, Flame,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [couple, setCouple] = useState(null);
   const [session, setSession] = useState(null);
+  const [daily, setDaily] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -61,6 +63,13 @@ export default function Dashboard() {
       ]);
       if (coupleRes.data?.success) setCouple(coupleRes.data.data ?? null);
       if (sessionRes.data?.success && sessionRes.data?.data?.session) setSession(sessionRes.data.data.session);
+      // Charger la question du jour si on a un couple complet
+      if (coupleRes.data?.data?.partner) {
+        try {
+          const dailyRes = await api.get('/daily/today');
+          if (dailyRes.data?.success) setDaily(dailyRes.data.data);
+        } catch { /* daily peut échouer si pas de couple, on ignore */ }
+      }
     } catch (err) {
       if (err.response?.status === 404) {
         setCouple(null);
@@ -452,6 +461,47 @@ export default function Dashboard() {
                   <Sparkles size={16} /> Démarrer
                 </Link>
               </section>
+            )}
+
+            {/* Question du jour — uniquement si couple complet */}
+            {hasPartner && daily && (
+              <Link to="/app/daily" className="card daily-teaser">
+                <div className="daily-teaser__head">
+                  <span className="badge daily-teaser__badge">
+                    <Sun size={12} /> Question du jour
+                  </span>
+                  {daily.both_answered ? (
+                    <span className="daily-teaser__status is-done">
+                      <Check size={12} /> Révélée
+                    </span>
+                  ) : daily.my_response ? (
+                    <span className="daily-teaser__status is-waiting">
+                      <Hourglass size={12} /> {daily.partner_has_answered ? 'Révélation imminente' : 'En attente'}
+                    </span>
+                  ) : (
+                    <span className="daily-teaser__status is-todo">À répondre</span>
+                  )}
+                </div>
+                <p className="daily-teaser__question">« {daily.question.content} »</p>
+                <span className="daily-teaser__cta">
+                  {daily.both_answered ? 'Voir nos réponses' : daily.my_response ? 'Voir l\'état' : 'Répondre maintenant'}
+                  <ArrowRight size={14} />
+                </span>
+              </Link>
+            )}
+
+            {/* Coach IA — uniquement si couple complet */}
+            {hasPartner && (
+              <Link to="/app/coach" className="card coach-teaser">
+                <div className="coach-teaser__icon">
+                  <MessagesSquare size={20} />
+                </div>
+                <div className="coach-teaser__body">
+                  <h2>Parlez avec le coach IA</h2>
+                  <p>Une question, un doute, une situation à débrouiller à deux. Le coach vous écoute et vous donne des pistes.</p>
+                </div>
+                <ArrowRight size={18} className="coach-teaser__arrow" />
+              </Link>
             )}
 
             <Link to="/app/history" className="dashboard-link-history">

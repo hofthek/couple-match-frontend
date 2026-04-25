@@ -10,6 +10,8 @@ import Questionnaire from './pages/Questionnaire';
 import Result from './pages/Result';
 import ResultDetails from './pages/ResultDetails';
 import History from './pages/History';
+import Daily from './pages/Daily';
+import Coach from './pages/Coach';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -39,6 +41,9 @@ export default function App() {
         <Route path="result/:id" element={<Result />} />
         <Route path="result/:id/details" element={<ResultDetails />} />
         <Route path="history" element={<History />} />
+        <Route path="daily" element={<Daily />} />
+        <Route path="coach" element={<Coach />} />
+        <Route path="coach/:conversationId" element={<Coach />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

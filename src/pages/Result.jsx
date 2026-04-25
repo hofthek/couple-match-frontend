@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Heart, AlertCircle, Lightbulb, Share2, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Sparkles, Heart, AlertCircle, Lightbulb, Share2, ChevronLeft, ChevronRight, Clock, MessagesSquare } from 'lucide-react';
 import api from '../api/client';
 import ScoreRing from '../components/ScoreRing';
 import RadarChart from '../components/RadarChart';
@@ -280,6 +280,16 @@ export default function Result() {
           </div>
         </motion.section>
       )}
+
+      <div className="result-coach-cta">
+        <div>
+          <h3>Envie d'en parler ?</h3>
+          <p>Le coach IA peut vous aider à explorer un sujet précis de ce résultat, à deux.</p>
+        </div>
+        <Link to="/app/coach" className="btn btn-primary">
+          <MessagesSquare size={16} /> Parler au coach
+        </Link>
+      </div>
 
       <div className="result-footer-actions">
         <Link to="/app" className="btn btn-ghost">Tableau de bord</Link>
