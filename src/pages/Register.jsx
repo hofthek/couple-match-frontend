@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 import './Auth.css';
@@ -36,7 +38,6 @@ export default function Register() {
         const target = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/app';
         setError('');
         setLoading(false);
-        // Laisser React mettre à jour le contexte avant la redirection
         setTimeout(() => navigate(target, { replace: true }), 0);
       } else {
         setError(data.message || 'Erreur lors de l\'inscription');
@@ -55,9 +56,18 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <h1>Inscription</h1>
-        <p className="auth-sub">Créez votre compte CoupleMatch</p>
+      <Link to="/" className="auth-brand">
+        <span className="auth-brand__mark"><Heart size={14} fill="currentColor" /></span>
+        CoupleMatch
+      </Link>
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1>Créez votre compte</h1>
+        <p className="auth-sub">Première étape avant de découvrir votre compatibilité.</p>
         <form onSubmit={handleSubmit}>
           {error && <div className="auth-error">{error}</div>}
           <label>
@@ -68,6 +78,7 @@ export default function Register() {
               onChange={(e) => setName(e.target.value)}
               required
               autoComplete="name"
+              placeholder="Votre prénom"
             />
           </label>
           <label>
@@ -78,6 +89,7 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              placeholder="vous@exemple.com"
             />
           </label>
           <label>
@@ -89,6 +101,7 @@ export default function Register() {
               required
               autoComplete="new-password"
               minLength={8}
+              placeholder="8 caractères minimum"
             />
           </label>
           <label>
@@ -99,18 +112,19 @@ export default function Register() {
               onChange={(e) => setPasswordConfirmation(e.target.value)}
               required
               autoComplete="new-password"
+              placeholder="••••••••"
             />
           </label>
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Inscription…' : 'S\'inscrire'}
+            {loading ? <><Loader2 size={16} className="spin" /> Inscription…</> : 'Créer mon compte'}
           </button>
         </form>
         <p className="auth-footer">
           Déjà un compte ? <Link to="/login">Se connecter</Link>
         </p>
-      </div>
+      </motion.div>
       <p className="back-home">
-        <Link to="/">← Retour à l'accueil</Link>
+        <Link to="/"><ArrowLeft size={14} /> Retour à l'accueil</Link>
       </p>
     </div>
   );

@@ -1,23 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Check, Clock, Send, Sparkles, Loader2 } from 'lucide-react';
 import api from '../api/client';
 import ApiErrorBlock from '../components/ApiErrorBlock';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { useToast } from '../components/useToast';
 import './Questionnaire.css';
 
 export default function Questionnaire() {
-  const [step, setStep] = useState('themes'); // 'themes' | 'questions'
+  const [step, setStep] = useState('themes');
   const [themes, setThemes] = useState([]);
   const [selectedThemeIds, setSelectedThemeIds] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [session, setSession] = useState(null);
   const [answers, setAnswers] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const toast = useToast();
 
   const loadThemesAndSession = useCallback(async () => {
     try {
@@ -35,7 +40,6 @@ export default function Questionnaire() {
           navigate(`/app/result/${sess.id}`, { replace: true });
           return;
         }
-        // Session en cours : charger les questions (avec theme_ids si présents) et passer au questionnaire
         const themeIds = sess.theme_ids?.length ? sess.theme_ids : null;
         const qParams = themeIds ? { params: { theme_ids: themeIds.join(',') } } : {};
         const qRes = await api.get('/questions', qParams);
@@ -59,9 +63,7 @@ export default function Questionnaire() {
     return () => { document.title = 'CoupleMatch'; };
   }, []);
 
-  useEffect(() => {
-    loadThemesAndSession();
-  }, [loadThemesAndSession]);
+  useEffect(() => { loadThemesAndSession(); }, [loadThemesAndSession]);
 
   function toggleTheme(id) {
     setSelectedThemeIds((prev) =>
@@ -105,13 +107,17 @@ export default function Questionnaire() {
   function handleOption(optionId) {
     const q = questions[currentIndex];
     setAnswers((prev) => ({ ...prev, [q.id]: optionId }));
-    if (currentIndex < questions.length - 1) setCurrentIndex((i) => i + 1);
+    if (currentIndex < questions.length - 1) {
+      setDirection(1);
+      setTimeout(() => setCurrentIndex((i) => i + 1), 240);
+    }
   }
 
   async function handleSubmit() {
     const filled = questions.filter((qu) => answers[qu.id]).length;
     if (filled < questions.length) {
-      setError(`Répondez à toutes les questions (${filled}/${questions.length}).`);
+      const missing = questions.length - filled;
+      toast.error(`Il reste ${missing} question${missing > 1 ? 's' : ''} sans réponse`);
       return;
     }
     setSubmitting(true);
@@ -123,6 +129,7 @@ export default function Questionnaire() {
       };
       const { data } = await api.post('/session/submit', payload);
       if (data.success) {
+        toast.success('Réponses envoyées !');
         if (data.data?.calculated && data.data?.result) {
           navigate(`/app/result/${data.data.result.session_id}`, { replace: true });
         } else {
@@ -136,10 +143,26 @@ export default function Questionnaire() {
     }
   }
 
+  // Build segmented progress by theme/pillar
+  const segments = useMemo(() => {
+    if (!questions.length) return [];
+    const groups = [];
+    let lastKey = null;
+    questions.forEach((q, i) => {
+      const key = q.theme?.id || q.pillar || 'all';
+      if (key !== lastKey) {
+        groups.push({ key, label: q.theme?.name || q.pillar || '—', from: i, to: i });
+        lastKey = key;
+      } else {
+        groups[groups.length - 1].to = i;
+      }
+    });
+    return groups;
+  }, [questions]);
+
   if (loading) {
     return (
-      <div className="questionnaire questionnaire-themes">
-        <h1 className="questionnaire-themes-title">Chargement…</h1>
+      <div className="questionnaire">
         <LoadingSkeleton variant="cards" />
       </div>
     );
@@ -148,7 +171,6 @@ export default function Questionnaire() {
   if (error && step === 'themes' && themes.length === 0) {
     return (
       <div className="questionnaire">
-        <h1 className="questionnaire-themes-title">Questionnaire</h1>
         <ApiErrorBlock
           message={error}
           onRetry={() => { setError(''); loadThemesAndSession(); }}
@@ -159,108 +181,201 @@ export default function Questionnaire() {
     );
   }
 
-  // Étape 1 : choix des thèmes (cartes)
+  // ÉTAPE 1 — choix des thèmes
   if (step === 'themes') {
     return (
-      <div className="questionnaire questionnaire-themes">
-        <h1 className="questionnaire-themes-title">Choisissez vos thèmes</h1>
-        <p className="questionnaire-themes-subtitle">
-          Sélectionnez un ou plusieurs thèmes pour personnaliser votre questionnaire.
-        </p>
+      <motion.div
+        className="questionnaire questionnaire-themes"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <header className="themes-head">
+          <span className="badge"><Sparkles size={12} /> Étape 1 sur 2</span>
+          <h1 className="display themes-title">
+            Choisissez vos <em>thèmes</em>.
+          </h1>
+          <p className="themes-sub">
+            Sélectionnez un ou plusieurs thèmes pour personnaliser votre questionnaire.
+          </p>
+        </header>
+
         {error && <div className="questionnaire-error">{error}</div>}
+
         <div className="theme-cards">
-          {themes.map((theme) => (
-            <button
-              key={theme.id}
-              type="button"
-              className={`theme-card ${selectedThemeIds.includes(theme.id) ? 'theme-card--selected' : ''}`}
-              onClick={() => toggleTheme(theme.id)}
-            >
-              <span className="theme-card__check">
-                {selectedThemeIds.includes(theme.id) ? '✓' : ''}
-              </span>
-              <h3 className="theme-card__name">{theme.name}</h3>
-              {theme.description && (
-                <p className="theme-card__description">{theme.description}</p>
-              )}
-            </button>
-          ))}
+          {themes.map((theme, i) => {
+            const selected = selectedThemeIds.includes(theme.id);
+            return (
+              <motion.button
+                key={theme.id}
+                type="button"
+                className={`theme-card ${selected ? 'theme-card--selected' : ''}`}
+                onClick={() => toggleTheme(theme.id)}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="theme-card__check">
+                  <AnimatePresence>
+                    {selected && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Check size={12} strokeWidth={3} />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </span>
+                <h3 className="theme-card__name">{theme.name}</h3>
+                {theme.description && (
+                  <p className="theme-card__description">{theme.description}</p>
+                )}
+              </motion.button>
+            );
+          })}
         </div>
-        <div className="questionnaire-themes-actions">
+
+        <div className="themes-footer">
+          <p className="themes-footer__estimate">
+            <Clock size={14} /> {selectedThemeIds.length === 0 ? 'Sélectionnez au moins un thème' : `≈ ${Math.max(5, selectedThemeIds.length * 4)} min à deux`}
+          </p>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary btn-lg"
             onClick={handleStartWithThemes}
             disabled={selectedThemeIds.length === 0 || starting}
           >
-            {starting ? 'Démarrage…' : 'Démarrer le questionnaire'}
+            {starting ? <><Loader2 size={18} className="spin" /> Démarrage…</> : <>Démarrer le questionnaire <ArrowRight size={18} /></>}
           </button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
-  // Étape 2 : questionnaire (questions)
+  // ÉTAPE 2 — questions
   if (!questions.length) {
     return (
       <div className="questionnaire-empty">
-        Aucune question disponible. <button type="button" className="btn btn-outline" onClick={() => setStep('themes')}>Changer les thèmes</button>
+        <p>Aucune question disponible.</p>
+        <button type="button" className="btn btn-outline" onClick={() => setStep('themes')}>
+          Changer les thèmes
+        </button>
       </div>
     );
   }
 
   const q = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+  const total = questions.length;
+  const answeredCount = Object.keys(answers).filter((k) => questions.find((x) => String(x.id) === String(k))).length;
+  const remaining = total - answeredCount;
+  const remainingMins = Math.max(1, Math.round((remaining * 12) / 60)); // ~12s/question
+
+  function go(delta) {
+    const next = currentIndex + delta;
+    if (next < 0 || next >= total) return;
+    setDirection(delta);
+    setCurrentIndex(next);
+  }
 
   return (
-    <div className="questionnaire">
+    <div className="questionnaire questionnaire-quiz">
       {error && <div className="questionnaire-error">{error}</div>}
-      <div className="questionnaire-progress">
-        <div className="progress-track">
-          <div className="progress-bar" style={{ width: `${progress}%` }} />
+
+      {/* Progress segmenté */}
+      <div className="qprogress">
+        <div className="qprogress__head">
+          <span className="qprogress__count">
+            <strong>{currentIndex + 1}</strong> / {total}
+          </span>
+          <span className="qprogress__time"><Clock size={12} /> ≈ {remainingMins} min restantes</span>
         </div>
-        <span>{currentIndex + 1} / {questions.length}</span>
+        <div className="qprogress__segments">
+          {segments.map((seg) => {
+            const segLen = seg.to - seg.from + 1;
+            const segPos = currentIndex >= seg.from
+              ? Math.min(segLen, currentIndex - seg.from + 1)
+              : 0;
+            const pct = (segPos / segLen) * 100;
+            return (
+              <div key={seg.key} className="qprogress__seg" title={seg.label} style={{ flex: segLen }}>
+                <div className="qprogress__seg-fill" style={{ width: `${pct}%` }} />
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <div className="questionnaire-card">
-        {q.theme && (
-          <span className="pillar-badge theme-badge">{q.theme.name}</span>
+
+      {/* Question card */}
+      <div className="qcard-wrap">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.article
+            key={q.id}
+            className="qcard"
+            custom={direction}
+            initial={{ opacity: 0, x: direction > 0 ? 40 : -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: direction > 0 ? -40 : 40 }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {q.theme && <span className="badge qcard__theme">{q.theme.name}</span>}
+            {!q.theme && q.pillar && <span className="badge qcard__theme">{q.pillar}</span>}
+            <h2 className="qcard__title">{q.title}</h2>
+
+            <div className="options">
+              {q.options?.map((opt, i) => {
+                const selected = answers[q.id] === opt.id;
+                return (
+                  <motion.button
+                    key={opt.id}
+                    type="button"
+                    className={`option-btn ${selected ? 'is-selected' : ''}`}
+                    onClick={() => handleOption(opt.id)}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 + i * 0.04 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <span className="option-key">{opt.label}</span>
+                    <span className="option-text">{opt.text}</span>
+                    <span className="option-check">
+                      {selected && <Check size={14} strokeWidth={3} />}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.article>
+        </AnimatePresence>
+      </div>
+
+      {/* Actions */}
+      <div className="qactions">
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => go(-1)}
+          disabled={currentIndex === 0}
+        >
+          <ArrowLeft size={16} /> Précédent
+        </button>
+        {currentIndex === total - 1 && answeredCount === total ? (
+          <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? <><Loader2 size={16} className="spin" /> Envoi…</> : <><Send size={16} /> Envoyer mes réponses</>}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => go(1)}
+            disabled={!answers[q.id]}
+          >
+            Suivant <ArrowRight size={16} />
+          </button>
         )}
-        {!q.theme && <span className="pillar-badge">{q.pillar}</span>}
-        <h2>{q.title}</h2>
-        <div className="options">
-          {q.options?.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              className={`option-btn ${answers[q.id] === opt.id ? 'selected' : ''}`}
-              onClick={() => handleOption(opt.id)}
-            >
-              <span className="option-label">{opt.label}</span>
-              <span className="option-text">{opt.text}</span>
-            </button>
-          ))}
-        </div>
-        <div className="questionnaire-actions">
-          {currentIndex > 0 && (
-            <button type="button" className="btn btn-outline" onClick={() => setCurrentIndex((i) => i - 1)}>
-              Précédent
-            </button>
-          )}
-          {currentIndex === questions.length - 1 && Object.keys(answers).length === questions.length ? (
-            <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
-              {submitting ? 'Envoi…' : 'Envoyer mes réponses'}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setCurrentIndex((i) => Math.min(i + 1, questions.length - 1))}
-              disabled={!answers[q.id]}
-            >
-              Suivant
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );

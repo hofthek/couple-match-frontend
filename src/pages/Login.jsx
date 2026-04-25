@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 import './Auth.css';
@@ -40,9 +42,18 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <h1>Connexion</h1>
-        <p className="auth-sub">Accédez à votre espace CoupleMatch</p>
+      <Link to="/" className="auth-brand">
+        <span className="auth-brand__mark"><Heart size={14} fill="currentColor" /></span>
+        CoupleMatch
+      </Link>
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1>Bon retour</h1>
+        <p className="auth-sub">Reprenez là où vous vous étiez arrêtés.</p>
         <form onSubmit={handleSubmit}>
           {error && <div className="auth-error">{error}</div>}
           <label>
@@ -53,6 +64,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              placeholder="vous@exemple.com"
             />
           </label>
           <label>
@@ -63,18 +75,19 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
+              placeholder="••••••••"
             />
           </label>
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Connexion…' : 'Se connecter'}
+            {loading ? <><Loader2 size={16} className="spin" /> Connexion…</> : 'Se connecter'}
           </button>
         </form>
         <p className="auth-footer">
           Pas encore de compte ? <Link to="/register">S'inscrire</Link>
         </p>
-      </div>
+      </motion.div>
       <p className="back-home">
-        <Link to="/">← Retour à l'accueil</Link>
+        <Link to="/"><ArrowLeft size={14} /> Retour à l'accueil</Link>
       </p>
     </div>
   );

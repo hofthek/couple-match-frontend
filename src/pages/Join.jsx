@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Heart, ArrowLeft, HeartHandshake } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Join.css';
 
@@ -30,32 +32,53 @@ export default function Join() {
   if (!code || code.length !== 6) {
     return (
       <div className="join-page">
-        <div className="join-card">
-          <h1>Lien d'invitation invalide</h1>
-          <p>Ce lien ne contient pas de code valide. Demandez à votre partenaire de vous envoyer à nouveau le lien d'invitation.</p>
+        <Link to="/" className="auth-brand">
+          <span className="auth-brand__mark"><Heart size={14} fill="currentColor" /></span>
+          CoupleMatch
+        </Link>
+        <motion.div
+          className="join-card"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <h1>Lien invalide</h1>
+          <p>Ce lien ne contient pas de code valide. Demandez à votre partenaire de vous renvoyer le lien d'invitation.</p>
           <Link to="/" className="btn btn-primary">Retour à l'accueil</Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
     <div className="join-page">
-      <div className="join-card">
-        <h1>Rejoindre un couple</h1>
-        <p>Pour rejoindre le couple avec le code <strong>{code}</strong>, connectez-vous ou créez un compte.</p>
+      <Link to="/" className="auth-brand">
+        <span className="auth-brand__mark"><Heart size={14} fill="currentColor" /></span>
+        CoupleMatch
+      </Link>
+      <motion.div
+        className="join-card"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <span className="join-icon"><HeartHandshake size={28} /></span>
+        <h1>Vous êtes invité·e</h1>
+        <p>Pour rejoindre le couple avec le code</p>
+        <div className="join-code">{code}</div>
+        <p>connectez-vous ou créez un compte.</p>
         <div className="join-actions">
-          <Link to={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="btn btn-primary">
+          <Link to={`/login?redirect=${encodeURIComponent(redirectUrl)}`} className="btn btn-primary btn-lg">
             Se connecter
           </Link>
-          <Link to={`/register?redirect=${encodeURIComponent(redirectUrl)}`} className="btn btn-outline">
+          <Link to={`/register?redirect=${encodeURIComponent(redirectUrl)}`} className="btn btn-outline btn-lg">
             Créer un compte
           </Link>
         </div>
-        <p className="join-back">
-          <Link to="/">← Retour à l'accueil</Link>
-        </p>
-      </div>
+      </motion.div>
+      <p className="join-back">
+        <Link to="/"><ArrowLeft size={14} /> Retour à l'accueil</Link>
+      </p>
     </div>
   );
 }

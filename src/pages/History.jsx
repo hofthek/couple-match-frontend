@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, ChevronRight, Sparkles } from 'lucide-react';
 import api from '../api/client';
 import ApiErrorBlock from '../components/ApiErrorBlock';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 import './History.css';
 
 const LEVEL_LABELS = { strong: 'Très forte', solid: 'Solide', fragile: 'Fragile', weak: 'Faible' };
+const LEVEL_TONES = { strong: 'tone-strong', solid: 'tone-solid', fragile: 'tone-fragile', weak: 'tone-weak' };
 
 export default function History() {
   const [list, setList] = useState([]);
@@ -27,22 +31,20 @@ export default function History() {
     return () => { document.title = 'CoupleMatch'; };
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   if (loading) {
     return (
       <div className="history">
-        <h1>Historique des tests</h1>
-        <div className="history-loading">Chargement…</div>
+        <h1 className="display history-title">Historique</h1>
+        <LoadingSkeleton variant="cards" />
       </div>
     );
   }
   if (error) {
     return (
       <div className="history">
-        <h1>Historique des tests</h1>
+        <h1 className="display history-title">Historique</h1>
         <ApiErrorBlock
           message={error}
           onRetry={() => { setError(''); load(); }}
@@ -55,32 +57,50 @@ export default function History() {
 
   return (
     <div className="history">
-      <h1>Historique des tests</h1>
+      <header className="history-head">
+        <h1 className="display history-title">Vos résultats</h1>
+        <p>L'évolution de votre compatibilité au fil du temps.</p>
+      </header>
+
       {list.length === 0 ? (
-        <p className="history-empty">Aucun test complété pour le moment.</p>
+        <div className="history-empty">
+          <span className="history-empty__icon"><Sparkles size={28} /></span>
+          <h2>Aucun test pour le moment</h2>
+          <p>Lancez votre premier test ensemble pour découvrir votre compatibilité.</p>
+          <Link to="/app/questionnaire" className="btn btn-primary">Commencer un test</Link>
+        </div>
       ) : (
         <ul className="history-list">
-          {list.map((s) => (
-            <li key={s.id} className="history-item">
-              <div className="history-item-main">
-                <span className="history-date">
-                  {s.completed_at ? new Date(s.completed_at).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) : '—'}
-                </span>
-                <span className="history-pct">{s.percentage}%</span>
-                <span className="history-level">{LEVEL_LABELS[s.level] || s.level}</span>
-                {s.theme_names?.length > 0 && (
-                  <span className="history-themes" title={s.theme_names.join(', ')}>
-                    {s.theme_names.join(', ')}
-                  </span>
-                )}
-              </div>
-              <Link to={`/app/result/${s.id}`} className="btn btn-outline btn-sm">Voir le détail</Link>
-            </li>
+          {list.map((s, i) => (
+            <motion.li
+              key={s.id}
+              className={`history-item ${LEVEL_TONES[s.level] || ''}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.04 }}
+            >
+              <Link to={`/app/result/${s.id}`} className="history-item__link">
+                <div className="history-item__score" aria-hidden="true">
+                  <span>{s.percentage}</span><sup>%</sup>
+                </div>
+                <div className="history-item__info">
+                  <p className="history-item__date">
+                    {s.completed_at ? new Date(s.completed_at).toLocaleDateString('fr-FR', { dateStyle: 'long' }) : '—'}
+                  </p>
+                  <p className="history-item__level">{LEVEL_LABELS[s.level] || s.level}</p>
+                  {s.theme_names?.length > 0 && (
+                    <p className="history-item__themes">{s.theme_names.join(' · ')}</p>
+                  )}
+                </div>
+                <ChevronRight size={18} className="history-item__chevron" />
+              </Link>
+            </motion.li>
           ))}
         </ul>
       )}
+
       <p className="history-back">
-        <Link to="/app">← Tableau de bord</Link>
+        <Link to="/app"><ArrowLeft size={14} /> Tableau de bord</Link>
       </p>
     </div>
   );

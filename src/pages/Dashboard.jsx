@@ -1,19 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
+import {
+  Copy, Check, Heart, UserPlus, Sparkles, Hourglass, Play,
+  ArrowRight, Share2, Link2, History as HistoryIcon, Loader2,
+} from 'lucide-react';
 import api from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import ApiErrorBlock from '../components/ApiErrorBlock';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { AvatarPair } from '../components/Avatar';
+import Avatar from '../components/Avatar';
+import { useToast } from '../components/useToast';
 import './Dashboard.css';
-
-function copyToClipboard(text, onDone) {
-  navigator.clipboard?.writeText(text).then(() => onDone?.()).catch(() => onDone?.(false));
-}
 
 const POLL_INTERVAL_MS = 3000;
 
 export default function Dashboard() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const toast = useToast();
+  const { user } = useAuth();
   const [couple, setCouple] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +29,7 @@ export default function Dashboard() {
   const [joinCode, setJoinCode] = useState('');
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(null); // 'code' | 'link' | null
+  const [mode, setMode] = useState(null); // 'create' | 'join' | null
   const pollRef = useRef(null);
 
   useEffect(() => {
@@ -29,34 +37,19 @@ export default function Dashboard() {
     return () => { document.title = 'CoupleMatch'; };
   }, []);
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   useEffect(() => {
     const invite = searchParams.get('invite');
-    if (invite && invite.length === 6) setJoinCode(invite.toUpperCase());
+    if (invite && invite.length === 6) {
+      setJoinCode(invite.toUpperCase());
+      setMode('join');
+    }
   }, [searchParams]);
 
   const invitationLink = couple?.invitation_code
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/join?code=${couple.invitation_code}`
     : '';
-
-  const handleCopyCode = useCallback(() => {
-    if (!couple?.invitation_code) return;
-    copyToClipboard(couple.invitation_code, (ok) => {
-      setCopied(ok !== false ? 'code' : null);
-      if (ok) setTimeout(() => setCopied(null), 2000);
-    });
-  }, [couple?.invitation_code]);
-
-  const handleCopyLink = useCallback(() => {
-    if (!invitationLink) return;
-    copyToClipboard(invitationLink, (ok) => {
-      setCopied(ok !== false ? 'link' : null);
-      if (ok) setTimeout(() => setCopied(null), 2000);
-    });
-  }, [invitationLink]);
 
   async function load() {
     setLoading(true);
@@ -87,9 +80,8 @@ export default function Dashboard() {
       const { data } = await api.post('/couple');
       if (data.success) {
         setCouple(data.data);
-        // Ne pas appeler load() ici : ça remettait "Chargement…" et masquait le code.
-        // On affiche tout de suite la réponse (id, status, invitation_code).
         loadSessionOnly();
+        toast.success('Couple créé. Partagez votre code !');
       } else setError(data.message || 'Erreur');
     } catch (err) {
       setError(err.response?.data?.message || 'Impossible de créer le couple');
@@ -104,9 +96,7 @@ export default function Dashboard() {
       if (sessionRes.data?.success && sessionRes.data?.data?.session) {
         setSession(sessionRes.data.data.session);
       }
-    } catch {
-      // ignoré
-    }
+    } catch { /* ignore */ }
   }
 
   const handleViewResult = useCallback(async () => {
@@ -138,13 +128,9 @@ export default function Dashboard() {
         } else {
           setSession(sess || null);
         }
-      } catch {
-        // keep current state
-      }
+      } catch { /* keep current state */ }
     }, POLL_INTERVAL_MS);
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [session?.ready_to_calculate, session?.result, navigate]);
 
   async function joinCouple(e) {
@@ -160,7 +146,9 @@ export default function Dashboard() {
       if (data.success) {
         setCouple(data.data);
         setJoinCode('');
+        setMode(null);
         load();
+        toast.success('Vous avez rejoint le couple !');
       } else setError(data.message || 'Erreur');
     } catch (err) {
       setError(err.response?.data?.message || 'Code invalide ou expiré.');
@@ -169,10 +157,32 @@ export default function Dashboard() {
     }
   }
 
+  async function copyText(text, label) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copié`);
+    } catch {
+      toast.error('Impossible de copier');
+    }
+  }
+
+  async function shareInvite() {
+    const text = `Rejoignez-moi sur CoupleMatch avec ce code : ${couple?.invitation_code}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'CoupleMatch', text, url: invitationLink });
+      } catch { /* cancelled */ }
+    } else {
+      copyText(invitationLink, 'Lien');
+    }
+  }
+
   if (loading) {
     return (
       <div className="dashboard">
-        <h1>Tableau de bord</h1>
+        <header className="dashboard-greeting">
+          <div className="dashboard-greeting__skeleton" />
+        </header>
         <LoadingSkeleton variant="cards" />
       </div>
     );
@@ -180,7 +190,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="dashboard">
-        <h1>Tableau de bord</h1>
+        <h1 className="display dashboard-title">Tableau de bord</h1>
         <ApiErrorBlock
           message={error}
           onRetry={load}
@@ -191,117 +201,265 @@ export default function Dashboard() {
     );
   }
 
-  const hasPartner = couple?.partner;
+  const hasPartner = !!couple?.partner;
   const canStart = hasPartner && !session;
+  const myCount = session?.my_responses_count ?? 0;
+  const partnerCount = session?.partner_responses_count ?? 0;
+  const expected = session?.expected_questions_count ?? 40;
+  const myProgress = expected ? Math.min(100, (myCount / expected) * 100) : 0;
+  const partnerProgress = expected ? Math.min(100, (partnerCount / expected) * 100) : 0;
 
   return (
     <div className="dashboard">
-      <h1>Tableau de bord</h1>
+      {/* Greeting */}
+      <motion.header
+        className="dashboard-greeting"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div>
+          <p className="dashboard-greeting__hi">Bonjour</p>
+          <h1 className="display dashboard-title">{user?.name || 'Bienvenue'} 👋</h1>
+        </div>
+        {couple && (
+          <AvatarPair a={user?.name} b={couple.partner?.name || '?'} size={44} />
+        )}
+      </motion.header>
 
-      {!couple ? (
-        <>
-          <section className="dashboard-card">
-            <h2>Vous n'avez pas encore de couple</h2>
-            <p>Créez un couple pour générer un code d'invitation et inviter votre partenaire.</p>
-            <button type="button" className="btn btn-primary" onClick={createCouple} disabled={creating}>
-              {creating ? 'Création…' : 'Créer un couple'}
-            </button>
-          </section>
-          <section className="dashboard-card">
-            <h2>Rejoindre avec un code</h2>
-            <p>Votre partenaire vous a envoyé un code à 6 caractères ? Saisissez-le ci-dessous.</p>
-            <form onSubmit={joinCouple} className="join-form">
-              <input
-                type="text"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
-                placeholder="XXXXXX"
-                maxLength={6}
-                className="join-input"
-              />
-              <button type="submit" className="btn btn-primary" disabled={joining || joinCode.length !== 6}>
-                {joining ? 'En cours…' : 'Rejoindre'}
+      <AnimatePresence mode="wait">
+        {!couple ? (
+          <motion.div
+            key="no-couple"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <p className="dashboard-lead">
+              Pour démarrer un test de compatibilité, créez votre couple ou rejoignez celui de votre partenaire.
+            </p>
+            <div className="onboarding-grid">
+              <button
+                type="button"
+                className={`onboarding-card ${mode === 'create' ? 'is-active' : ''}`}
+                onClick={() => setMode('create')}
+              >
+                <span className="onboarding-card__icon"><Heart size={22} /></span>
+                <h3>Créer un couple</h3>
+                <p>Vous générez un code à 6 caractères à partager avec votre partenaire.</p>
               </button>
-            </form>
-          </section>
-        </>
-      ) : (
-        <>
-          <section className="dashboard-card">
-            <h2>Mon couple</h2>
-            <p><strong>Statut :</strong> {couple.status}</p>
-            {couple.partner ? (
-              <p><strong>Partenaire :</strong> {couple.partner.name}</p>
-            ) : (
-              <>
-                <p className="dashboard-waiting">En attente que votre partenaire rejoigne avec le code.</p>
+              <button
+                type="button"
+                className={`onboarding-card ${mode === 'join' ? 'is-active' : ''}`}
+                onClick={() => setMode('join')}
+              >
+                <span className="onboarding-card__icon"><UserPlus size={22} /></span>
+                <h3>Rejoindre un couple</h3>
+                <p>Votre partenaire vous a envoyé un code ? Saisissez-le ici.</p>
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {mode === 'create' && (
+                <motion.div
+                  key="create"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="onboarding-action card"
+                >
+                  <p>On crée votre couple maintenant ?</p>
+                  <button type="button" className="btn btn-primary" onClick={createCouple} disabled={creating}>
+                    {creating ? <><Loader2 size={16} className="spin" /> Création…</> : <>Créer mon couple <ArrowRight size={16} /></>}
+                  </button>
+                </motion.div>
+              )}
+              {mode === 'join' && (
+                <motion.div
+                  key="join"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="onboarding-action card"
+                >
+                  <form onSubmit={joinCouple} className="join-form">
+                    <label className="join-form__label">
+                      Code d'invitation
+                      <input
+                        type="text"
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
+                        placeholder="XXXXXX"
+                        maxLength={6}
+                        className="join-input"
+                        autoFocus
+                      />
+                    </label>
+                    <button type="submit" className="btn btn-primary" disabled={joining || joinCode.length !== 6}>
+                      {joining ? <><Loader2 size={16} className="spin" /> En cours…</> : <>Rejoindre <ArrowRight size={16} /></>}
+                    </button>
+                  </form>
+                  {error && <p className="dashboard-inline-error">{error}</p>}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="has-couple"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="dashboard-stack"
+          >
+            {/* Couple status */}
+            {!hasPartner ? (
+              <section className="card invite-card">
+                <header className="invite-card__head">
+                  <span className="badge"><Hourglass size={12} /> En attente du partenaire</span>
+                  <h2>Invitez votre partenaire</h2>
+                  <p>Partagez votre code ou scannez le QR code. Vous démarrerez le test ensemble dès qu'il vous aura rejoint.</p>
+                </header>
+
                 {couple.invitation_code ? (
-                  <div className="invitation-block">
-                    <h3>Inviter votre partenaire</h3>
-                    <p className="invitation-hint">Partagez le code ou le lien ci-dessous. Votre partenaire pourra rejoindre le couple après connexion ou inscription.</p>
-                    <div className="invitation-code-row">
-                      <span className="invitation-label">Code d'invitation</span>
-                      <strong className="invitation-code">{couple.invitation_code}</strong>
-                      <button type="button" className="btn btn-outline btn-sm" onClick={handleCopyCode}>
-                        {copied === 'code' ? 'Copié !' : 'Copier le code'}
-                      </button>
+                  <div className="invite-card__body">
+                    <div className="invite-qr">
+                      <QRCodeSVG
+                        value={invitationLink}
+                        size={140}
+                        bgColor="transparent"
+                        fgColor="#f7f1ea"
+                        level="M"
+                      />
                     </div>
-                    <div className="invitation-link-row">
-                      <span className="invitation-label">Lien d'invitation</span>
-                      <code className="invitation-link-url">{invitationLink}</code>
-                      <button type="button" className="btn btn-outline btn-sm" onClick={handleCopyLink}>
-                        {copied === 'link' ? 'Copié !' : 'Copier le lien'}
+                    <div className="invite-meta">
+                      <div className="invite-meta__row">
+                        <span className="invite-meta__label">Votre code</span>
+                        <div className="invite-code">
+                          <code>{couple.invitation_code}</code>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm icon-btn"
+                            onClick={() => copyText(couple.invitation_code, 'Code')}
+                            aria-label="Copier le code"
+                          >
+                            <Copy size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="invite-meta__row">
+                        <span className="invite-meta__label">Lien direct</span>
+                        <div className="invite-link">
+                          <span className="invite-link__url" title={invitationLink}>{invitationLink}</span>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm icon-btn"
+                            onClick={() => copyText(invitationLink, 'Lien')}
+                            aria-label="Copier le lien"
+                          >
+                            <Link2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <button type="button" className="btn btn-primary btn-sm invite-share" onClick={shareInvite}>
+                        <Share2 size={14} /> Partager
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <p className="invitation-missing">Code d&apos;invitation en cours de chargement… Rechargez la page si besoin.</p>
+                  <p className="invitation-missing">Code en cours de chargement… Rechargez la page si besoin.</p>
                 )}
-              </>
+
+                <div className="invite-pulse" aria-hidden="true">
+                  <span /><span /><span />
+                </div>
+              </section>
+            ) : (
+              <section className="card couple-card">
+                <header className="couple-card__head">
+                  <span className="badge"><Check size={12} /> Couple actif</span>
+                  <h2>{user?.name} & {couple.partner.name}</h2>
+                  <p>Vous êtes prêts à explorer votre compatibilité.</p>
+                </header>
+                <AvatarPair a={user?.name} b={couple.partner.name} size={56} />
+              </section>
             )}
-          </section>
 
-          {session && (
-            <section className="dashboard-card">
-              <h2>Session de test</h2>
-              {session.result ? (
-                <>
-                  <p>Dernier résultat : <strong>{session.result.percentage}%</strong> – {session.result.level}</p>
-                  <Link to={`/app/result/${session.id}`} className="btn btn-primary">Voir le détail</Link>
-                </>
-              ) : (
-                <>
-                  <p>Vos réponses : {session.my_responses_count} / {session.expected_questions_count ?? 40}</p>
-                  <p>Partenaire : {session.partner_responses_count} / {session.expected_questions_count ?? 40}</p>
-                  {session.ready_to_calculate ? (
-                    <>
-                      <p className="ready-msg">Les deux ont répondu.</p>
-                      <button type="button" className="btn btn-primary" onClick={handleViewResult}>
-                        Voir le résultat
-                      </button>
-                    </>
-                  ) : (
-                    <Link to="/app/questionnaire" className="btn btn-primary">
-                      {(session.my_responses_count ?? 0) >= (session.expected_questions_count ?? 40) ? 'En attente du partenaire' : 'Continuer le questionnaire'}
+            {/* Session card */}
+            {session && (
+              <section className="card session-card">
+                {session.result ? (
+                  <>
+                    <header className="result-preview__head">
+                      <span className="badge"><Sparkles size={12} /> Dernier résultat</span>
+                      <h2>{session.result.percentage}% — {session.result.level}</h2>
+                    </header>
+                    <Link to={`/app/result/${session.id}`} className="btn btn-primary">
+                      Voir le détail <ArrowRight size={16} />
                     </Link>
-                  )}
-                </>
-              )}
-            </section>
-          )}
+                  </>
+                ) : (
+                  <>
+                    <header className="session-card__head">
+                      <span className="badge"><Play size={12} /> Test en cours</span>
+                      <h2>Avancement du questionnaire</h2>
+                    </header>
 
-          {canStart && !session && (
-            <section className="dashboard-card">
-              <p>Démarrez un test de compatibilité avec votre partenaire.</p>
-              <Link to="/app/questionnaire" className="btn btn-primary">Démarrer le questionnaire</Link>
-            </section>
-          )}
+                    <div className="progress-duo">
+                      <div className="progress-duo__row">
+                        <Avatar name={user?.name} variant="a" size={32} />
+                        <div className="progress-duo__bar">
+                          <div className="progress-duo__fill progress-duo__fill--a" style={{ width: `${myProgress}%` }} />
+                        </div>
+                        <span className="progress-duo__count">{myCount} / {expected}</span>
+                      </div>
+                      <div className="progress-duo__row">
+                        <Avatar name={couple.partner?.name || '?'} variant="b" size={32} />
+                        <div className="progress-duo__bar">
+                          <div className="progress-duo__fill progress-duo__fill--b" style={{ width: `${partnerProgress}%` }} />
+                        </div>
+                        <span className="progress-duo__count">{partnerCount} / {expected}</span>
+                      </div>
+                    </div>
 
-          <p className="dashboard-link">
-            <Link to="/app/history">Voir l'historique des tests →</Link>
-          </p>
-        </>
-      )}
+                    {session.ready_to_calculate ? (
+                      <div className="session-cta">
+                        <p className="session-ready">✨ Vous avez tous les deux terminé !</p>
+                        <button type="button" className="btn btn-primary" onClick={handleViewResult}>
+                          Voir notre résultat <ArrowRight size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <Link to="/app/questionnaire" className="btn btn-primary">
+                        {myCount >= expected
+                          ? <><Hourglass size={16} /> En attente du partenaire</>
+                          : myCount > 0
+                            ? <>Reprendre le questionnaire <ArrowRight size={16} /></>
+                            : <>Commencer le questionnaire <ArrowRight size={16} /></>}
+                      </Link>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
+
+            {canStart && !session && (
+              <section className="card start-card">
+                <h2>Démarrer un test de compatibilité</h2>
+                <p>Choisissez vos thèmes et répondez chacun de votre côté. Compte ≈ 10 minutes.</p>
+                <Link to="/app/questionnaire" className="btn btn-primary">
+                  <Sparkles size={16} /> Démarrer
+                </Link>
+              </section>
+            )}
+
+            <Link to="/app/history" className="dashboard-link-history">
+              <HistoryIcon size={14} /> Voir l'historique des tests
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

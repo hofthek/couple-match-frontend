@@ -1,0 +1,22 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  border: 2px solid var(--bg-page);
+  box-shadow: var(--shadow-sm);
+  user-select: none;
+}
+
+.avatar-pair {
+  display: inline-flex;
+  align-items: center;
+}
+.avatar-pair .avatar:nth-child(2) {
+  margin-left: -0.6em;
+}
